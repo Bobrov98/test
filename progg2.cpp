@@ -1,52 +1,67 @@
 #include <unistd.h>
-#include <sys/types.h>
-#include <sys/mman.h>
-#include <fcntl.h>
 #include <stdio.h>
-#include <string.h>
-#include <pthread.h>
 #include <stdlib.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/mman.h>
-#include <fcntl.h>
-#include <string.h>
-#include <sys/ipc.h>
-#include <sys/shm.h>
-#include <semaphore.h>
- #include <sys/types.h>
+#include <sys/socket.h>
+#include <iostream>
+#include <arpa/inet.h>
+#include <netinet/in.h>
+#include <netdb.h>
 
-#include <sys/stat.h>
 
-#include <fcntl.h> 
+
+
+
+
+#define our_port   1601
+using namespace std;
  int main()
 
 {
-   int fd_fifo; /*дескриптор FIFO*/
+   int ser;
+   int sock;
+   int number;
+    struct sockaddr_in server_address;
+    sock=socket(AF_INET, SOCK_STREAM,0);
+    if(sock<0)
+    {
+      cout<<"socket error";
+      exit(0);
+    }
+    cout<<"socket created \n";
+    server_address.sin_port=htons(our_port);
+    server_address.sin_family=AF_INET;
+    server_address.sin_addr.s_addr=htons(INADDR_ANY);
+    
+    int ret=bind(sock, reinterpret_cast<struct sockaddr*>(&server_address),sizeof(server_address));
+    if(ret<0)
+    {
+      cout<<"biding coonection. Socket has alredy been establishing\n";
+      return -1;
+    }
+    socklen_t size=sizeof(server_address);
+    cout<<"listening clients... \n";
+    listen(sock, 1);
+    ser=accept(sock,reinterpret_cast<struct sockaddr*>(&server_address),&size);
+     if(sock<0)
+    {
+      cout<<"cant accept";
+     
+    }
+    char buffer[1024];
+    while(ser>0)
+    {
+     recv(ser,buffer,1024,0);
+     cout << buffer<< endl;
+     number=atoi(buffer);
+     if (number>=10 && number%32==0)
+        {
+          cout << buffer<< endl;
+        }
+     else
+     {
+        cout <<"error:not right sum"<< endl;
+     }    
+    }
 
-  char buffer[]="Текстовая строка для fifo\n";
 
-  char buf[100]; 
-if((fd_fifo=open("/tmp/fifo0001.1", O_RDWR)) == - 1)
-
-  {
-
-    fprintf(stderr, "Невозможно открыть fifo\n");
-
-    exit(0);
-
-  } 
-while(1)
-{
-
-if(read(fd_fifo, &buf, sizeof(buf)) == -1)
-  {
-  fprintf(stderr, "Невозможно прочесть из FIFO\n");
-  }
-  else
-  {
-  printf("Прочитано из FIFO : %d\n",sum);
-  }
-  
-} 
 }
